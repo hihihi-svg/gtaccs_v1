@@ -263,7 +263,6 @@ export default function TopologyBuilder({ topology, onTopologyChange, onGoToDash
         }
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, nodes, links, linkStart, draftFlow, draftPath]);
 
   const handleMouseMove = useCallback((e) => {
@@ -295,7 +294,6 @@ export default function TopologyBuilder({ topology, onTopologyChange, onGoToDash
       setEditLinkIdx(li);
       setEditLinkCap(String(links[li].capacity));
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nodes, links]);
 
   /* ── Add Node confirm ───────────────────────────────────────────── */
