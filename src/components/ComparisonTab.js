@@ -7,74 +7,71 @@ import {
 import { SCENARIOS } from '../simulation/engine';
 
 const SCENARIO_RESULTS = {
-  default: {
-    throughput: 52,
-    loss: 18,
-    fairness: 0.68,
-    equilibrium: 'Partial',
-    stability: 'Moderate',
-    payoff: 8.2,
-    insight: 'Mixed strategies create partial fairness. Aggressive flows consume bandwidth at the expense of conservative ones. Adaptive flows self-regulate but are affected by aggressive neighbors. This models real-world internet heterogeneity.',
+  mixed: {
+    throughput: 52, loss: 18, fairness: 0.68, payoff: 8.2,
+    equilibrium: 'Partial', stability: 'Moderate',
+    insight: 'Mixed strategies create partial fairness. Aggressive flows consume bandwidth at the expense of conservative ones. MODELS real-world internet heterogeneity.',
   },
-  allAggressive: {
-    throughput: 42,
-    loss: 68,
-    fairness: 0.41,
-    equilibrium: 'Never',
-    stability: 'Chaotic',
-    payoff: -24.5,
-    insight: 'Tragedy of the Commons: all flows rationally maximize their rate, but collectively destroy the network. Throughput collapses as loss overwhelms capacity. Payoffs plummet despite high sending rates.',
+  low_traffic: {
+    throughput: 32, loss: 0, fairness: 0.99, payoff: 15.5,
+    equilibrium: 'Immediate', stability: 'Perfect',
+    insight: 'All flows within capacity. Zero packet loss and maximum stability. This represents the ideal state where supply exceeds demand.',
   },
-  allAdaptive: {
-    throughput: 68,
-    loss: 5,
-    fairness: 0.91,
-    equilibrium: '~30 rounds',
-    stability: 'Stable',
-    payoff: 22.1,
-    insight: 'TCP-like AIMD produces the best overall outcome. Flows self-organize into fair allocation without central coordination. The Nash Equilibrium emerges naturally through decentralized adaptation — the most efficient and equitable scenario.',
+  heavy_congestion: {
+    throughput: 42, loss: 68, fairness: 0.41, payoff: -24.5,
+    equilibrium: 'Never', stability: 'Chaotic',
+    insight: 'Tragedy of the Commons: all flows rationally maximize their rate, but collectively destroy the network. Payoffs plummet despite high sending rates.',
   },
-  allConservative: {
-    throughput: 18,
-    loss: 1,
-    fairness: 0.97,
-    equilibrium: '~15 rounds',
-    stability: 'Stable',
-    payoff: 6.3,
-    insight: 'Maximum fairness but severe under-utilization. The bottleneck link (50 Mbps) is never stressed. Stable quickly but sacrifices throughput — analogous to a network where all users throttle themselves unnecessarily.',
+  burst_traffic: {
+    throughput: 48, loss: 35, fairness: 0.55, payoff: -5.2,
+    equilibrium: 'Dynamic', stability: 'Low',
+    insight: 'High variance in flow rates causes frequent queue overflows. Buffers oscillate between empty and full, leading to inconsistent payoffs.',
+  },
+  fairness_critical: {
+    throughput: 68, loss: 5, fairness: 0.91, payoff: 22.1,
+    equilibrium: '~30 rounds', stability: 'Stable',
+    insight: 'Homogeneous adaptive strategies produce the best overall outcome. Flows self-organize into fair allocation without central coordination.',
+  },
+  adaptive_env: {
+    throughput: 62, loss: 12, fairness: 0.82, payoff: 14.8,
+    equilibrium: '~50 rounds', stability: 'Stable',
+    insight: 'Mixed adaptive and AIMD flows co-evolve. The system reaches a stable Nash Equilibrium slightly slower but maintains high efficiency.',
   },
 };
 
 const RADAR_DATA = [
-  { axis: 'Throughput', allAggressive: 50, allAdaptive: 90, allConservative: 25, default: 65 },
-  { axis: 'Fairness', allAggressive: 25, allAdaptive: 92, allConservative: 98, default: 68 },
-  { axis: 'Stability', allAggressive: 5, allAdaptive: 88, allConservative: 95, default: 55 },
-  { axis: 'Low Loss', allAggressive: 10, allAdaptive: 85, allConservative: 99, default: 60 },
-  { axis: 'Payoff', allAggressive: 10, allAdaptive: 95, allConservative: 50, default: 60 },
+  { axis: 'Throughput', heavy_congestion: 50, fairness_critical: 90, low_traffic: 25, mixed: 65 },
+  { axis: 'Fairness', heavy_congestion: 25, fairness_critical: 92, low_traffic: 98, mixed: 68 },
+  { axis: 'Stability', heavy_congestion: 5, fairness_critical: 88, low_traffic: 95, mixed: 55 },
+  { axis: 'Low Loss', heavy_congestion: 10, fairness_critical: 85, low_traffic: 99, mixed: 60 },
+  { axis: 'Payoff', heavy_congestion: 10, fairness_critical: 95, low_traffic: 50, mixed: 60 },
 ];
 
 const SCENARIO_COLORS = {
-  allAggressive: '#ef4444',
-  allAdaptive: '#3b82f6',
-  allConservative: '#22c55e',
-  default: '#f59e0b',
+  heavy_congestion: '#ef4444',
+  fairness_critical: '#3b82f6',
+  low_traffic: '#22c55e',
+  mixed: '#f59e0b',
 };
 
 const SCENARIO_KEYS = Object.keys(SCENARIOS);
 
 export default function ComparisonTab() {
-  const [active, setActive] = useState('default');
+  const [active, setActive] = useState('mixed');
 
-  const result = SCENARIO_RESULTS[active];
-  const sc = SCENARIOS[active];
+  const result = SCENARIO_RESULTS[active] || SCENARIO_RESULTS.mixed;
+  const sc = SCENARIOS[active] || SCENARIOS.mixed;
 
   // Bar chart comparing all scenarios
-  const barData = SCENARIO_KEYS.map(key => ({
-    name: SCENARIOS[key].name,
-    Throughput: SCENARIO_RESULTS[key].throughput,
-    Fairness: Math.round(SCENARIO_RESULTS[key].fairness * 100),
-    LowLoss: Math.round(100 - SCENARIO_RESULTS[key].loss),
-  }));
+  const barData = SCENARIO_KEYS.map(key => {
+    const r = SCENARIO_RESULTS[key] || SCENARIO_RESULTS.mixed;
+    return {
+      name: SCENARIOS[key].name,
+      Throughput: r.throughput,
+      Fairness: Math.round(r.fairness * 100),
+      LowLoss: Math.round(100 - r.loss),
+    };
+  });
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
